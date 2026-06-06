@@ -54,7 +54,13 @@ class UserService {
      * 4. 生成并返回 JWT Token
      * 
      * @param request 登录请求对象（包含用户名、明文密码）明文传输
-     * @return oatpp::Object<LoginResponse> 包含 token 和用户信息的响应对象
+     * @return oatpp::Object<LoginResponse> 包含 token 和用户信息的响应对象，结构：
+     *         {
+     *              String token     (JWT token 内容)
+     *              String tokenType (默认为 "Bearer")
+     *              Int64 expiresIn  (默认 7200 秒)
+     *              UserDto userInfo (包含 id, username, role, creditScore 字段)
+     *         }
      *         若用户不存在、密码错误或账号被禁用，抛出异常
      */
     static oatpp::Object<LoginResponse> login(
