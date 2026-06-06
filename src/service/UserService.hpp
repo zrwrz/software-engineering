@@ -66,6 +66,13 @@ class UserService {
     static oatpp::Object<LoginResponse> login(
         const oatpp::Object<LoginRequest>& request
     );
+
+    /**
+     * @brief 获取指定用户信息
+     * @param userId 需要查询信息的用户的 Id
+     * @return oatpp::Object<UserDto> 用户信息结构
+     */
+    static oatpp::Object<UserDto> getCurrentUser(int64_t userId);
 };
 
 #endif
