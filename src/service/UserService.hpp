@@ -72,7 +72,7 @@ class UserService {
      * @param userId 需要查询信息的用户的 Id
      * @return oatpp::Object<UserDto> 用户信息结构
      */
-    static oatpp::Object<UserDto> getCurrentUser(int64_t userId);
+    static oatpp::Object<UserDto> getUserDetailed(int64_t userId);
 };
 
 #endif
