@@ -3,9 +3,11 @@
 
 #include "dto/request/RegisterRequest.hpp"
 #include "dto/response/RegisterResponse.hpp"
-
-#include <random>
-#include <string>
+#include "dto/request/LoginRequest.hpp"
+#include "dto/response/LoginResponse.hpp"
+#include "dto/request/UpdateProfileRequest.hpp"
+#include "dto/request/ChangePasswordRequest.hpp"
+#include "dto/entity/UserDto.hpp"
 
 class UserService {
   private:
@@ -73,6 +75,32 @@ class UserService {
      * @return oatpp::Object<UserDto> 用户信息结构
      */
     static oatpp::Object<UserDto> getUserDetailed(int64_t userId);
+
+    /**
+     * @brief 修改个人资料
+     * 
+     * @param userId 用户ID
+     * @param request 修改请求（包含手机号、邮箱）
+     * @throws std::runtime_error 用户不存在或操作失败
+     */
+    static void updateProfile(
+        int64_t userId,
+        const oatpp::Object<UpdateProfileRequest>& request
+    );
+    
+    /**
+     * @brief 修改密码
+     * 
+     * @param userId 用户ID
+     * @param request 修改密码请求（包含旧密码、新密码）
+     * @throws std::runtime_error 用户不存在、旧密码错误或操作失败
+     */
+    static void changePassword(
+        int64_t userId,
+        const oatpp::Object<ChangePasswordRequest>& request
+    );
+
+    
 };
 
 #endif
