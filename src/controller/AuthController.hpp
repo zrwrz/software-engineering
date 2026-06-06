@@ -5,56 +5,79 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "dto/request/RegisterRequest.hpp"
 #include "dto/response/RegisterResponse.hpp"
-
-#include <random>
-#include <string>
+#include "dto/request/LoginRequest.hpp"
+#include "dto/response/LoginResponse.hpp"
+#include "service/UserService.hpp"
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
 class AuthController : public oatpp::web::server::api::ApiController {
-  private:
-    /**
-     * @brief 生成随机盐值
-     * 
-     * 生成一个32位的随机字符串，用于密码加盐。
-     * 字符集包括大小写字母和数字。
-     * 
-     * @return std::string 32位随机字符串
-     */
-    std::string generateSalt() {
-        static const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        std::string salt;
-        salt.reserve(32);
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, sizeof(charset) - 2);
-        for (int i = 0; i < 32; ++i) {
-            salt += charset[dis(gen)];
-        }
-        return salt;
-    }
-
   public:
     AuthController(const std::shared_ptr<ObjectMapper>& objectMapper)
         : oatpp::web::server::api::ApiController(objectMapper)
     {}
     
-    ENDPOINT("POST", "/api/v1/auth/salt", getSalt,
-             REQUEST_DTO(oatpp::Object<RegisterSaltRequest>, request))
+    /**
+     * @brief 用户注册
+     */
+    ENDPOINT("POST", "/auth/register", registerUser,
+             REQUEST_DTO(oatpp::Object<RegisterRequest>, request))
     {
-        auto response = RegisterSaltResponse::createShared();
-        response->salt = "dummy_salt";
-        response->expiresIn = 300;
-        return createDtoResponse(Status::CODE_200, response);
+        try {
+            if (!request->username || request->username->empty()) {
+                throw std::runtime_error("用户名不能为空");
+            }
+            if (!request->password || request->password->empty()) {
+                throw std::runtime_error("密码不能为空");
+            }
+            if (!request->phone || request->phone->empty()) {
+                throw std::runtime_error("手机号不能为空");
+            }
+            
+            auto response = UserService::registerUser(request);
+            return createDtoResponse(Status::CODE_201, response);
+            
+        } catch (const std::runtime_error& e) {
+            return createResponse(
+                Status::CODE_400,
+                "{\"code\":1001,\"message\":\"" + std::string(e.what()) + "\"}"
+            );
+        } catch (const std::exception& e) {
+            return createResponse(
+                Status::CODE_500,
+                "{\"code\":5000,\"message\":\"系统内部错误\"}"
+            );
+        }
     }
     
-    // 第二步：提交注册
-    ENDPOINT("POST", "/api/v1/auth/register", registerUser,
-             REQUEST_DTO(oatpp::Object<RegisterCommitRequest>, request))
+    /**
+     * @brief 用户登录
+     */
+    ENDPOINT("POST", "/auth/login", login,
+             REQUEST_DTO(oatpp::Object<LoginRequest>, request))
     {
-        auto response = RegisterResponse::createShared();
-        response->userId = 10001;
-        return createDtoResponse(Status::CODE_201, response);
+        try {
+            if (!request->username || request->username->empty()) {
+                throw std::runtime_error("用户名不能为空");
+            }
+            if (!request->password || request->password->empty()) {
+                throw std::runtime_error("密码不能为空");
+            }
+            
+            auto response = UserService::login(request);
+            return createDtoResponse(Status::CODE_200, response);
+            
+        } catch (const std::runtime_error& e) {
+            return createResponse(
+                Status::CODE_401,
+                "{\"code\":1002,\"message\":\"" + std::string(e.what()) + "\"}"
+            );
+        } catch (const std::exception& e) {
+            return createResponse(
+                Status::CODE_500,
+                "{\"code\":5000,\"message\":\"系统内部错误\"}"
+            );
+        }
     }
 };
 

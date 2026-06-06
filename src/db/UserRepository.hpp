@@ -22,7 +22,6 @@ class UserRepository {
     static bool existsByEmail(const std::string& email);
     static int64_t createUser(
         const std::string& username,
-        const std::string& salt,
         const std::string& phone,
         const std::string& email,
     );

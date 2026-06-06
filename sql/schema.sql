@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     
     -- 基本信息
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名，用于登录，唯一',
-    password VARCHAR(255) NOT NULL COMMENT '密码哈希值（bcrypt/加盐SHA256）',
-    salt VARCHAR(64) COMMENT '盐值（如果不使用自包含的哈希算法如bcrypt则需要）',
+    password VARCHAR(255) NOT NULL COMMENT '密码哈希值',
+    -- salt VARCHAR(64) COMMENT '盐值（如果不使用自包含的哈希算法如bcrypt则需要）',
     -- name VARCHAR(100) COMMENT '真实姓名（可选）',
     
     -- 联系方式
