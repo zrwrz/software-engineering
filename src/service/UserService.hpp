@@ -37,6 +37,7 @@ class UserService {
      * 1. 检查用户名是否已被注册
      * 2. 存储用户信息到数据库（用户名、密码哈希、手机号、邮箱）
      * 3. 返回用户ID
+     * 4. 请自行设计一个合理的密码哈希算法。
      * 
      * @param request 注册提交请求（包含用户名、密码明文、手机号、邮箱）
      * @return oatpp::Object<RegisterResponse> 包含用户ID的响应对象
@@ -55,6 +56,7 @@ class UserService {
      * 3. 检查账号状态
      * 4. 生成并返回 JWT Token
      * 
+     * @param secret std::string 类型的字符串，生成 token 时要用到
      * @param request 登录请求对象（包含用户名、明文密码）明文传输
      * @return oatpp::Object<LoginResponse> 包含 token 和用户信息的响应对象，结构：
      *         {
@@ -66,6 +68,7 @@ class UserService {
      *         若用户不存在、密码错误或账号被禁用，抛出异常
      */
     static oatpp::Object<LoginResponse> login(
+        const std::string &secret,
         const oatpp::Object<LoginRequest>& request
     );
 
