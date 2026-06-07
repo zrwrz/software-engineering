@@ -3,7 +3,7 @@
 
 #include "oatpp/Types.hpp"
 #include "oatpp/macro/codegen.hpp"
-#include "dto/entity/UserDto.hpp"  // 复用用户信息 DTO
+#include "dto/response/LoginUserInfoResponseDto.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -17,7 +17,7 @@ class LoginResponse : public oatpp::DTO {
     DTO_FIELD(String, token);
     DTO_FIELD(String, tokenType) = "Bearer";
     DTO_FIELD(Int64, expiresIn);
-    DTO_FIELD(Object<UserDto>, userInfo);
+    DTO_FIELD(Object<LoginUserInfoResponseDto>, userInfo);
 };
 
 #include OATPP_CODEGEN_END(DTO)

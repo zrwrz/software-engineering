@@ -11,24 +11,8 @@
 
 class UserService {
   private:
+
   public:
-    // /**
-    //  * @brief 生成注册盐值
-    //  * 
-    //  * （请参考上述文件中关联的头文件来获取方法中涉及的结构的定义）
-    //  * 处理注册第一步请求：
-    //  * 1. 校验请求参数（用户名、手机号、邮箱）
-    //  * 2. 检查用户名、手机号、邮箱是否已被注册
-    //  * 3. 生成随机盐值并缓存
-    //  * 4. 返回盐值和有效期
-    //  *  
-    //  * @param request 注册请求对象（包含用户名、手机号、邮箱）
-    //  * @return oatpp::Object<RegisterSaltResponse> 包含盐值和有效期的响应对象
-    //  *         若校验失败，返回空指针或抛出异常
-    //  */
-    // static oatpp::Object<RegisterSaltResponse> generateSalt(
-    //     const oatpp::Object<RegisterSaltRequest>& request
-    // );
     
     /**
      * @brief 注册用户
@@ -84,9 +68,10 @@ class UserService {
      * 
      * @param userId 用户ID
      * @param request 修改请求（包含手机号、邮箱）
+     * @return oatpp:Object<UserDto> 更新之后的用户信息结构
      * @throws std::runtime_error 用户不存在或操作失败
      */
-    static void updateProfile(
+    static oatpp::Object<UserDto> updateProfile(
         int64_t userId,
         const oatpp::Object<UpdateProfileRequest>& request
     );
@@ -96,9 +81,10 @@ class UserService {
      * 
      * @param userId 用户ID
      * @param request 修改密码请求（包含旧密码、新密码）
+     * @return bool 修改密码成功与否
      * @throws std::runtime_error 用户不存在、旧密码错误或操作失败
      */
-    static void changePassword(
+    static bool changePassword(
         int64_t userId,
         const oatpp::Object<ChangePasswordRequest>& request
     );

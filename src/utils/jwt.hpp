@@ -10,7 +10,7 @@
 #include <nlohmann/json.hpp>
 
 class JWT {
-public:
+  public:
     static std::string generate(const std::string& secret, int64_t userId, const std::string& role, int64_t expiresInSeconds = 7200) {
         using namespace std::chrono;
         auto now = system_clock::now();
@@ -84,7 +84,7 @@ public:
         return payload;
     }
     
-private:
+  private:
     static std::string base64UrlEncode(const std::string& data) {
         // 标准 Base64 编码
         std::string encoded;
