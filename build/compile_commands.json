@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/jiewu-project/build",
+  "command": "/usr/bin/c++  -I/home/jiewu-project/src -isystem /usr/local/include/oatpp-1.4.0/oatpp -std=gnu++17 -o CMakeFiles/jiewu_server.dir/src/main.cpp.o -c /home/jiewu-project/src/main.cpp",
+  "file": "/home/jiewu-project/src/main.cpp",
+  "output": "CMakeFiles/jiewu_server.dir/src/main.cpp.o"
+}
+]

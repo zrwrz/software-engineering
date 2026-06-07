@@ -1,8 +1,8 @@
 #ifndef ITEM_DTO_HPP
 #define ITEM_DTO_HPP
 
-#include "oatpp/core/Types.hpp"
-#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/Types.hpp"
+#include "oatpp/macro/codegen.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
