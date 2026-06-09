@@ -11,7 +11,7 @@ class ItemListResponse : public oatpp::DTO {
     DTO_INIT(ItemListResponse, DTO)
 
     DTO_FIELD(Vector<Object<ItemListItemDto>>, list);
-    DTO_FIELD(Int64, total);
+    DTO_FIELD(Int32, total);
     DTO_FIELD(Int32, page);
     DTO_FIELD(Int32, size);
 };

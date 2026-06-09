@@ -16,9 +16,8 @@ class ItemListItemDto : public oatpp::DTO {
     DTO_FIELD(Int64, id);
     DTO_FIELD(String, name);
     DTO_FIELD(String, category);
-    DTO_FIELD(String, imageUrl);
-    DTO_FIELD(String, status);        // 普通用户只看到 available
-    DTO_FIELD(String, createdAt);
+    DTO_FIELD(Int32, availableCount);
+    DTO_FIELD(String, status);
 };
 
 #include OATPP_CODEGEN_END(DTO)
