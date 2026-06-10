@@ -51,7 +51,7 @@
 - `phone`：`std::string`
 - `email`：`std::string`
 - `creditScore`：`int32_t`
-- `status`：`std::string`（`ACTIVE`/`DISABLED`）
+- `status`：`std::string`（`active`/`banned`/`frozen`）
 - `createdAt`：`std::string`（`yyyy-MM-dd HH:mm:ss`）
 
 ### 3.2 Item（物品）
