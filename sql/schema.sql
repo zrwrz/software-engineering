@@ -111,3 +111,35 @@ CREATE TABLE IF NOT EXISTS orders (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
+
+-- 物品上传申请表（item_submissions）
+-- 存储用户提交的物品上传申请及审核状态
+CREATE TABLE IF NOT EXISTS item_submissions (
+    -- 主键
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '申请ID，自增主键',
+    
+    -- 关联信息
+    submitter_id BIGINT NOT NULL COMMENT '提交人ID（关联users.id）',
+    
+    -- 物品基本信息
+    name VARCHAR(100) NOT NULL COMMENT '物品名称',
+    category VARCHAR(50) COMMENT '分类（如：电子设备、体育用品、书籍等）',
+    description TEXT COMMENT '物品描述',
+    total_count INT NOT NULL DEFAULT 1 COMMENT '物品总数量',
+    deposit DOUBLE NOT NULL DEFAULT 0.0 COMMENT '押金金额',
+    
+    -- 审核信息
+    audit_remark VARCHAR(255) COMMENT '审核备注/拒绝原因',
+    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING' COMMENT '审核状态：待审核/已通过/已拒绝',
+    
+    -- 审计字段
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    
+    -- 索引
+    INDEX idx_submitter_id (submitter_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at),
+    
+    -- 外键约束
+    FOREIGN KEY (submitter_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='物品上传申请表';
