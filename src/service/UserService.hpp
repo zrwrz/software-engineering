@@ -89,7 +89,13 @@ class UserService {
         const oatpp::Object<ChangePasswordRequest>& request
     );
 
-    
+    /**
+     * @brief 判断是否有管理员权限
+     * 
+     * @param userId 用户 ID
+     * @return int 0：普通用户；1：管理员；-1；用户不存在
+     */
+    static bool isAdmin(int64_t userId);
 };
 
 #endif
