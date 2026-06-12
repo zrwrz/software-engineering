@@ -4,22 +4,34 @@ project(jiewu-project)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 查找 Oat++ 库
 find_package(oatpp REQUIRED)
+find_package(OpenSSL REQUIRED)
 
-# 添加可执行文件
+find_path(MYSQLCPPCONN_INCLUDE_DIR mysql_driver.h)
+find_library(MYSQLCPPCONN_LIBRARY NAMES mysqlcppconn)
+
+if(NOT MYSQLCPPCONN_INCLUDE_DIR)
+    message(FATAL_ERROR "mysql_driver.h not found. Please install MySQL Connector/C++ development headers.")
+endif()
+
+if(NOT MYSQLCPPCONN_LIBRARY)
+    message(FATAL_ERROR "mysqlcppconn library not found. Please install MySQL Connector/C++.")
+endif()
+
 add_executable(jiewu_server
     src/main.cpp
-    # 后续添加其他 .cpp 文件
+    src/db/UserRepository.cpp
+    src/service/UserService.cpp
 )
 
-# 链接 Oat++ 库
 target_link_libraries(jiewu_server
     oatpp::oatpp
+    OpenSSL::Crypto
+    ${MYSQLCPPCONN_LIBRARY}
 )
 
-# 设置头文件搜索路径
 target_include_directories(jiewu_server PRIVATE
     src
+    ${MYSQLCPPCONN_INCLUDE_DIR}
     /usr/local/include/oatpp-1.4.0/oatpp
 )
