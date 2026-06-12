@@ -1,3 +1,0 @@
-/home/jiewu-project/build/CMakeFiles/jiewu_server.dir
-/home/jiewu-project/build/CMakeFiles/edit_cache.dir
-/home/jiewu-project/build/CMakeFiles/rebuild_cache.dir

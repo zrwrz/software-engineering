@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/jiewu_server.dir/src/main.cpp.o CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o -o jiewu_server  /usr/local/lib/oatpp-1.4.0/liboatpp.a /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so -latomic 
