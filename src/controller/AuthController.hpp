@@ -96,6 +96,8 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		try {
 			auto response = user_service->registerUser(request);
 			return createOKResponse(Status::CODE_201, response);
+		} catch (const std::runtime_error& e) {
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
 		}
@@ -121,7 +123,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 			return createOKResponse(Status::CODE_200, response);
 		} catch (const std::runtime_error& e) {
 			// 捕获业务层抛出的特定业务异常（如：密码错误、账号不存在）
-			return createErrorResponse(Status::CODE_401, 1002, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			// 捕获其他未知异常
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
@@ -200,7 +202,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 			auto updatedUser = user_service->updateProfile(userId, request);
 			return createOKResponse(Status::CODE_200, updatedUser);
 		} catch (const std::runtime_error& e) {
-			return createErrorResponse(Status::CODE_400, 1003, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
 		}
@@ -237,8 +239,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 
 			return createOKResponse(Status::CODE_200, success_dto);
 		} catch (const std::runtime_error& e) {
-			// 捕获业务异常（如：旧密码错误、用户不存在等）
-			return createErrorResponse(Status::CODE_400, 1003, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			// 捕获其他未知异常
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");

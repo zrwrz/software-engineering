@@ -129,6 +129,30 @@ jiewu_server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/build
 .PHONY : jiewu_server/fast
 
+src/db/UserRepository.o: src/db/UserRepository.cpp.o
+.PHONY : src/db/UserRepository.o
+
+# target to build an object file
+src/db/UserRepository.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o
+.PHONY : src/db/UserRepository.cpp.o
+
+src/db/UserRepository.i: src/db/UserRepository.cpp.i
+.PHONY : src/db/UserRepository.i
+
+# target to preprocess a source file
+src/db/UserRepository.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.i
+.PHONY : src/db/UserRepository.cpp.i
+
+src/db/UserRepository.s: src/db/UserRepository.cpp.s
+.PHONY : src/db/UserRepository.s
+
+# target to generate assembly for a file
+src/db/UserRepository.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.s
+.PHONY : src/db/UserRepository.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -153,6 +177,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/service/UserService.o: src/service/UserService.cpp.o
+.PHONY : src/service/UserService.o
+
+# target to build an object file
+src/service/UserService.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o
+.PHONY : src/service/UserService.cpp.o
+
+src/service/UserService.i: src/service/UserService.cpp.i
+.PHONY : src/service/UserService.i
+
+# target to preprocess a source file
+src/service/UserService.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.i
+.PHONY : src/service/UserService.cpp.i
+
+src/service/UserService.s: src/service/UserService.cpp.s
+.PHONY : src/service/UserService.s
+
+# target to generate assembly for a file
+src/service/UserService.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/jiewu_server.dir/build.make CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.s
+.PHONY : src/service/UserService.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -162,9 +210,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... jiewu_server"
+	@echo "... src/db/UserRepository.o"
+	@echo "... src/db/UserRepository.i"
+	@echo "... src/db/UserRepository.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/service/UserService.o"
+	@echo "... src/service/UserService.i"
+	@echo "... src/service/UserService.s"
 .PHONY : help
 
 

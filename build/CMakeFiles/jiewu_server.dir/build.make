@@ -83,18 +83,53 @@ CMakeFiles/jiewu_server.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jiewu_server.dir/src/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jiewu-project/src/main.cpp -o CMakeFiles/jiewu_server.dir/src/main.cpp.s
 
+CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o: CMakeFiles/jiewu_server.dir/flags.make
+CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o: /home/jiewu-project/src/db/UserRepository.cpp
+CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o: CMakeFiles/jiewu_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jiewu-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o -MF CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o.d -o CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o -c /home/jiewu-project/src/db/UserRepository.cpp
+
+CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jiewu-project/src/db/UserRepository.cpp > CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.i
+
+CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jiewu-project/src/db/UserRepository.cpp -o CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.s
+
+CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o: CMakeFiles/jiewu_server.dir/flags.make
+CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o: /home/jiewu-project/src/service/UserService.cpp
+CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o: CMakeFiles/jiewu_server.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jiewu-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o -MF CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o.d -o CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o -c /home/jiewu-project/src/service/UserService.cpp
+
+CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jiewu-project/src/service/UserService.cpp > CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.i
+
+CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jiewu-project/src/service/UserService.cpp -o CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.s
+
 # Object files for target jiewu_server
 jiewu_server_OBJECTS = \
-"CMakeFiles/jiewu_server.dir/src/main.cpp.o"
+"CMakeFiles/jiewu_server.dir/src/main.cpp.o" \
+"CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o" \
+"CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o"
 
 # External object files for target jiewu_server
 jiewu_server_EXTERNAL_OBJECTS =
 
 jiewu_server: CMakeFiles/jiewu_server.dir/src/main.cpp.o
+jiewu_server: CMakeFiles/jiewu_server.dir/src/db/UserRepository.cpp.o
+jiewu_server: CMakeFiles/jiewu_server.dir/src/service/UserService.cpp.o
 jiewu_server: CMakeFiles/jiewu_server.dir/build.make
 jiewu_server: /usr/local/lib/oatpp-1.4.0/liboatpp.a
+jiewu_server: /usr/lib/x86_64-linux-gnu/libssl.so
+jiewu_server: /usr/lib/x86_64-linux-gnu/libcrypto.so
+jiewu_server: /usr/lib/x86_64-linux-gnu/libmysqlcppconn.so
 jiewu_server: CMakeFiles/jiewu_server.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jiewu-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable jiewu_server"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jiewu-project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable jiewu_server"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/jiewu_server.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
