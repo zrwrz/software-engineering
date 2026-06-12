@@ -12,7 +12,7 @@
 #include "dto/entity/UserDto.hpp"
 #include "service/UserService.hpp"
 #include "dto/response/ChangePasswordSuccessDto.hpp"
-#include "response/Response.hpp"
+#include "dto/response/Response.hpp"
 
 #include "utils/jwt.hpp"
 
@@ -78,7 +78,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 	/**
 	 * @brief 用户注册
 	 */
-	ENDPOINT("POST", "api/v1/auth/register", registerUser,
+	ENDPOINT("POST", "/api/v1/auth/register", registerUser,
 		BODY_DTO(oatpp::Object<RegisterRequest>, request))
 	{
 		// 1. 参数校验
@@ -104,7 +104,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 	/**
 	 * @brief 用户登录
 	 */
-	ENDPOINT("POST", "api/v1/auth/login", login,
+	ENDPOINT("POST", "/api/v1/auth/login", login,
 		BODY_DTO(oatpp::Object<LoginRequest>, request))
 	{
 		// 1. 参数校验
