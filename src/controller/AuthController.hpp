@@ -2,7 +2,7 @@
 #define AUTH_CONTROLLER_HPP
 
 #include "oatpp/web/server/api/ApiController.hpp"
-#include "oatpp/macro/codegen.hpp"
+#include "oatpp/core/macro/codegen.hpp"
 #include "dto/request/RegisterRequest.hpp"
 #include "dto/response/RegisterResponse.hpp"
 #include "dto/request/LoginRequest.hpp"

@@ -1,8 +1,8 @@
 #ifndef LOGIN_USERINFO_RESPONSE_DTO_HPP
 #define LOGIN_USERINFO_RESPONSE_DTO_HPP
 
-#include "oatpp/macro/codegen.hpp"
-#include "oatpp/Types.hpp"
+#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/core/Types.hpp"
 
 // 1. 开始 DTO 代码生成块
 #include OATPP_CODEGEN_BEGIN(DTO)

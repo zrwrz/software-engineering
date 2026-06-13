@@ -1,8 +1,8 @@
 #ifndef GLOBAL_RESPONSE_HPP
 #define GLOBAL_RESPONSE_HPP
 
-#include "oatpp/macro/codegen.hpp"
-#include "oatpp/Types.hpp"
+#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/core/Types.hpp"
 
 // 必须包含这两行宏，用于开启 DTO 的代码生成
 #include OATPP_CODEGEN_BEGIN(DTO)

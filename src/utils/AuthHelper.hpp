@@ -1,7 +1,7 @@
 #ifndef AUTH_HELPER_HPP
 #define AUTH_HELPER_HPP
 
-#include "oatpp/Types.hpp"
+#include "oatpp/core/Types.hpp"
 #include "utils/jwt.hpp"
 #include <stdexcept>
 #include <string>

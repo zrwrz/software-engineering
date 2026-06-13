@@ -9,15 +9,22 @@
 #include <functional>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 namespace {
 
-std::string getEnvOrDefault(const char* name, const std::string& defaultValue) {
-    const char* value = std::getenv(name);
-    if (value == nullptr || value[0] == '\0') {
-        return defaultValue;
+std::string getEnvOrDefault(const char* primaryName, const char* legacyName, const char* defaultValue) {
+    const char* primaryValue = std::getenv(primaryName);
+    if (primaryValue != nullptr && primaryValue[0] != '\0') {
+        return primaryValue;
     }
-    return value;
+
+    const char* legacyValue = std::getenv(legacyName);
+    if (legacyValue != nullptr && legacyValue[0] != '\0') {
+        return legacyValue;
+    }
+
+    return defaultValue;
 }
 
 std::runtime_error dbError(const std::string& action, const sql::SQLException& e) {

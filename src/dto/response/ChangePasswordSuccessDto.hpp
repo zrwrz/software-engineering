@@ -1,8 +1,8 @@
 #ifndef CHANGE_PASSWORD_SUCCESS_DTO_HPP
 #define CHANGE_PASSWORD_SUCCESS_DTO_HPP
 
-#include "oatpp/macro/codegen.hpp"
-#include "oatpp/Types.hpp"
+#include "oatpp/core/macro/codegen.hpp"
+#include "oatpp/core/Types.hpp"
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 

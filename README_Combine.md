@@ -1,10 +1,10 @@
-# 统合修复说明
+# 用户端管理端统合说明
 
-## 功能修复
+## 功能完善
 
 ### 物品模块
 
-- 保留现有接口：
+- 物品模块接口：
   - `GET /api/v1/items`
   - `GET /api/v1/items/{itemId}`
   - `POST /api/v1/items/submissions`
@@ -40,9 +40,9 @@ export JIEWU_DB_PASSWORD="password"
 export JIEWU_DB_NAME="jiewu_project"
 ```
 
-同时兼容旧变量：`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`。
+同时兼容变量：`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`。
 
-## 编译运行
+## 编译运行（详细可参考 CompileCommands.md）
 
 ```bash
 mkdir -p build
@@ -65,7 +65,7 @@ python test/UserTest.py
 完整接口流程测试：
 
 ```bash
-python test/test_api_full.py
+python test/ApiFullTest.py
 ```
 
 完整流程测试支持以下环境变量：
