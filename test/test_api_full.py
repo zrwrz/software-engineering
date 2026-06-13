@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 import requests
 
-BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8081/api/v1")
+BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8080/api/v1")
 HEADERS = {"Content-Type": "application/json"}
 SUFFIX = int(time.time())
 
@@ -69,9 +69,10 @@ def future_time(days=1, hour=9):
 
 
 def run_user_tests(borrower):
-    borrower.request("GET", "/users/me")
+    userinfo_res = borrower.request("GET", "/users/me")
+    borrower_id = userinfo_res["id"]
     borrower.request("GET", "/items", params={"page": 1, "size": 5})
-    borrower.request("GET", "/credits/records", params={"page": 1, "size": 5})
+    borrower.request("GET", "/credits/records", params={"page": 1, "size": 5, "userId" : borrower_id})
 
 
 def run_item_and_order_flow(borrower, borrower_id, manager):

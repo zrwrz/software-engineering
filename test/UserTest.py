@@ -2,7 +2,7 @@ import json
 import time
 import requests
 
-BASE_URL = "http://localhost:8081/api/v1"
+BASE_URL = "http://localhost:8080/api/v1"
 HEADERS = {"Content-Type": "application/json"}
 SUFFIX = int(time.time())
 
