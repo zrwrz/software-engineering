@@ -132,6 +132,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 3. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 4. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("查询物品列表失败: ") + e.what());
@@ -160,6 +162,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 4. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 5. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("获取物品详情失败: ") + e.what());
@@ -190,6 +194,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 4. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 5. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("提交物品申请失败: ") + e.what());
@@ -220,6 +226,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 4. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 5. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("查询审核队列失败: ") + e.what());
@@ -256,6 +264,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 5. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 6. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("审核物品申请失败: ") + e.what());
@@ -292,6 +302,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 5. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 6. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("编辑物品信息失败: ") + e.what());
@@ -328,6 +340,8 @@ class ItemController : public oatpp::web::server::api::ApiController {
             
             // 5. 返回统一格式的成功响应
             return createOKResponse(Status::CODE_200, result);
+        } catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
         } catch (const std::exception& e) {
             // 6. 捕获异常并返回统一格式的错误响应
             return createErrorResponse(Status::CODE_500, 5000, std::string("更新物品状态失败: ") + e.what());

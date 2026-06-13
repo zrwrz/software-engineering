@@ -129,7 +129,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 		try {
 			auto result = order_service->createReservation(userId, request);
 			return createOKResponse(Status::CODE_200, result);
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, std::string("创建预约订单失败: ") + e.what());
 		}
 	}
@@ -156,7 +158,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 		try {
 			auto result = order_service->getMyOrders(userId, queryParams);
 			return createOKResponse(Status::CODE_200, result);
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			// 4. 捕获异常并返回统一格式的错误响应
 			return createErrorResponse(Status::CODE_500, 5000, std::string("获取我的订单列表失败: ") + e.what());
 		}
@@ -189,7 +193,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 		try {
 			auto result = order_service->getOrderList(queryParams);
 			return createOKResponse(Status::CODE_200, result);
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			// 5. 捕获异常并返回统一格式的错误响应
 			return createErrorResponse(Status::CODE_500, 5000, std::string("获取订单列表失败: ") + e.what());
 		}
@@ -218,7 +224,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 			}
 
 			return createOKResponse(Status::CODE_200, result);
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			// 5. 捕获异常并返回统一格式的错误响应
 			return createErrorResponse(Status::CODE_500, 5000, std::string("获取订单详情失败: ") + e.what());
 		}
@@ -259,7 +267,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 				return createErrorResponse(Status::CODE_500, 5000, "取消预约失败，请稍后重试");
 			}
 
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, std::string("取消预约失败: ") + e.what());
 		}
 	}
@@ -318,7 +328,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 				return createErrorResponse(Status::CODE_500, 5000, "审核操作失败，请稍后重试");
 			}
 
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, std::string("审核预约失败: ") + e.what());
 		}
 	}
@@ -359,7 +371,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 				return createErrorResponse(Status::CODE_500, 5000, "登记借出失败，请稍后重试");
 			}
 
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, std::string("登记借出失败: ") + e.what());
 		}
 	}
@@ -401,7 +415,9 @@ class OrderController : public oatpp::web::server::api::ApiController {
 				return createErrorResponse(Status::CODE_500, 5000, "登记归还失败，请稍后重试");
 			}
 
-		} catch (const std::exception& e) {
+		} catch (const std::runtime_error& e) {
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, std::string("登记归还失败: ") + e.what());
 		}
 	}

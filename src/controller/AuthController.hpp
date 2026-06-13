@@ -130,7 +130,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		}
 	}
 
-	/**
+    /** 
 	 * @brief 获取当前登录用户的详细信息
 	 * 
 	 * 处理获取当前用户信息的请求：
@@ -169,9 +169,18 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		}
 
 		int64_t userId = payload.value("userId", 0);
-        auto userProfile = user_service->getUserDetailed(userId);
-
-		return createOKResponse(Status::CODE_200, userProfile);
+        
+        // 3. 调用业务逻辑层获取用户信息（添加 try-catch 保护）
+        try {
+            auto userProfile = user_service->getUserDetailed(userId);
+            return createOKResponse(Status::CODE_200, userProfile);
+        } catch (const std::runtime_error& e) {
+            // 业务异常（如：用户不存在）
+            return createErrorResponse(Status::CODE_400, 4001, e.what());
+        } catch (const std::exception& e) {
+            // 数据库操作失败或其他异常
+            return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
+        }
 	}
 
     /**
@@ -197,13 +206,20 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		}
 		int64_t userId = payload.value("userId", int64_t(0));
 
-		// 3. 调用业务逻辑层更新资料（传入 userId 和请求体）
+		// 3. 参数校验
+		if (!request) {
+			return createErrorResponse(Status::CODE_400, 1001, "请求体不能为空");
+		}
+
+		// 4. 调用业务逻辑层更新资料
 		try {
 			auto updatedUser = user_service->updateProfile(userId, request);
 			return createOKResponse(Status::CODE_200, updatedUser);
 		} catch (const std::runtime_error& e) {
-			return createErrorResponse(Status::CODE_401, 4001, e.what());
+			// 业务异常（如：用户不存在、手机号已被占用等）
+			return createErrorResponse(Status::CODE_400, 4001, e.what());
 		} catch (const std::exception& e) {
+			// 数据库操作失败或其他系统异常
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
 		}
 	}
