@@ -40,7 +40,7 @@ int main() {
 
     // 3. 监听端口 8081
     auto connectionProvider = oatpp::network::tcp::server::ConnectionProvider::createShared(
-        {"0.0.0.0", 8081, oatpp::network::Address::IP_4}
+        {"0.0.0.0", 8080, oatpp::network::Address::IP_4}
     );
 
     std::cerr << "端口监听设置成功！" << std::endl;
@@ -52,7 +52,7 @@ int main() {
 
     // 5. 创建并启动服务器
     oatpp::network::Server server(connectionProvider, connectionHandler);
-    OATPP_LOGi("Server", "Running on http://localhost:8081");
+    OATPP_LOGi("Server", "Running on http://localhost:8080");
     server.run();
     return 0;
 }

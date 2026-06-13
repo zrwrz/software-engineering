@@ -111,10 +111,10 @@ sql::Connection* UserRepository::getConnection() {
     try {
         sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
 
-        const std::string host = getEnvOrDefault("JIEWU_DB_HOST", "DB_HOST", "tcp://127.0.0.1:3306");
-        const std::string user = getEnvOrDefault("JIEWU_DB_USER", "DB_USER", "root");
-        const std::string password = getEnvOrDefault("JIEWU_DB_PASSWORD", "DB_PASSWORD", "password");
-        const std::string database = getEnvOrDefault("JIEWU_DB_NAME", "DB_NAME", "jiewu_project");
+        const std::string host = getEnvOrDefault("DB_HOST", "tcp://127.0.0.1:3306");
+        const std::string user = getEnvOrDefault("DB_USER", "root");
+        const std::string password = getEnvOrDefault("DB_PASSWORD", "");
+        const std::string database = getEnvOrDefault("DB_NAME", "jiewu_project");
 
         sql::Connection* conn = driver->connect(host, user, password);
         conn->setSchema(database);

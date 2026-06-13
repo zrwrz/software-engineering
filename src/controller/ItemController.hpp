@@ -51,9 +51,9 @@ class ItemController : public oatpp::web::server::api::ApiController {
     ENDPOINT("GET", "/api/v1/items", listItems,
         QUERY(Int32, page, "page"),
         QUERY(Int32, size, "size"),
-        QUERY(String, keyword, "keyword"),
-        QUERY(String, category, "category"),
-        QUERY(String, status, "status"))
+        QUERY(String, keyword, "keyword", ""),
+        QUERY(String, category, "category", ""),
+        QUERY(String, status, "status", ""))
     {
         try {
             auto data = ItemService::selectItemList(
