@@ -12,7 +12,7 @@
 #include "dto/entity/UserDto.hpp"
 #include "service/UserService.hpp"
 #include "dto/response/ChangePasswordSuccessDto.hpp"
-#include "response/Response.hpp"
+#include "dto/response/Response.hpp"
 
 #include "utils/jwt.hpp"
 
@@ -24,7 +24,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
     std::shared_ptr<UserService> user_service;
 
     /**
-	 * @brief 构建统一格式的错误响应（私有辅助方法）
+	 * @brief 构建统一格式的错误响应
 	 * @param status HTTP 状态码
 	 * @param code 业务错误码
 	 * @param message 错误提示信息
@@ -36,6 +36,22 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		auto response = ApiResponse::createShared();
 		response->code = code;
 		response->message = message;
+		return createDtoResponse(status, response);
+	}
+	
+	/**
+	 * @brief 构建统一格式的正常响应
+	 * @param status HTTP 状态码
+	 * @param data 返回体
+	 * @return 统一格式的 HTTP 响应
+	 */
+	std::shared_ptr<oatpp::web::protocol::http::outgoing::Response> createOKResponse(
+		Status status, const oatpp::Any& data) 
+	{
+		auto response = ApiResponse::createShared();
+		response->code = 0;
+		response->message = "ok";
+		response->data = data;
 		return createDtoResponse(status, response);
 	}
 
@@ -62,7 +78,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 	/**
 	 * @brief 用户注册
 	 */
-	ENDPOINT("POST", "api/v1/auth/register", registerUser,
+	ENDPOINT("POST", "/api/v1/auth/register", registerUser,
 		BODY_DTO(oatpp::Object<RegisterRequest>, request))
 	{
 		// 1. 参数校验
@@ -79,7 +95,9 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		// 2. 调用业务逻辑层
 		try {
 			auto response = user_service->registerUser(request);
-			return createDtoResponse(Status::CODE_201, response); // 注册成功返回 201
+			return createOKResponse(Status::CODE_201, response);
+		} catch (const std::runtime_error& e) {
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
 		}
@@ -88,7 +106,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 	/**
 	 * @brief 用户登录
 	 */
-	ENDPOINT("POST", "api/v1/auth/login", login,
+	ENDPOINT("POST", "/api/v1/auth/login", login,
 		BODY_DTO(oatpp::Object<LoginRequest>, request))
 	{
 		// 1. 参数校验
@@ -102,10 +120,10 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		// 2. 调用业务逻辑层
 		try {
 			auto response = user_service->login(secret, request);
-			return createDtoResponse(Status::CODE_200, response); // 登录成功返回 200
+			return createOKResponse(Status::CODE_200, response);
 		} catch (const std::runtime_error& e) {
 			// 捕获业务层抛出的特定业务异常（如：密码错误、账号不存在）
-			return createErrorResponse(Status::CODE_401, 1002, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			// 捕获其他未知异常
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
@@ -153,13 +171,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		int64_t userId = payload.value("userId", 0);
         auto userProfile = user_service->getUserDetailed(userId);
 
-		// 5. 返回统一格式的用户信息响应
-		auto response = ApiResponse::createShared();
-		response->code = 0;
-		response->message = "ok";
-		response->data = userProfile;
-
-		return createDtoResponse(Status::CODE_200, response);
+		return createOKResponse(Status::CODE_200, userProfile);
 	}
 
     /**
@@ -169,7 +181,7 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		HEADER(String, authorization, "Authorization"),
 		BODY_DTO(oatpp::Object<UpdateProfileRequest>, request))
     {
-		// 1. 校验 Authorization 头并提取 Token（复用您之前的逻辑）
+		// 1. 校验 Authorization 头并提取 Token
 		const char* BEARER_PREFIX = "Bearer ";
 		if (!authorization || authorization->find(BEARER_PREFIX) != 0) {
 			return createErrorResponse(Status::CODE_401, 1002, "非法的 Header 格式");
@@ -188,15 +200,9 @@ class AuthController : public oatpp::web::server::api::ApiController {
 		// 3. 调用业务逻辑层更新资料（传入 userId 和请求体）
 		try {
 			auto updatedUser = user_service->updateProfile(userId, request);
-			
-			// 4. 返回统一格式的成功响应
-			auto response = ApiResponse::createShared();
-			response->code = 0;
-			response->message = "ok";
-			response->data = updatedUser;
-			return createDtoResponse(Status::CODE_200, response);
+			return createOKResponse(Status::CODE_200, updatedUser);
 		} catch (const std::runtime_error& e) {
-			return createErrorResponse(Status::CODE_400, 1003, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");
 		}
@@ -231,15 +237,9 @@ class AuthController : public oatpp::web::server::api::ApiController {
 			auto success_dto = SuccessDto::createShared();
             success_dto->success = success;
 
-			// 4. 返回统一格式的成功响应
-			auto response = ApiResponse::createShared();
-			response->code = 0;
-			response->message = "ok";
-			response->data = success_dto; // 对应响应体中的 "success": true
-			return createDtoResponse(Status::CODE_200, response);
+			return createOKResponse(Status::CODE_200, success_dto);
 		} catch (const std::runtime_error& e) {
-			// 捕获业务异常（如：旧密码错误、用户不存在等）
-			return createErrorResponse(Status::CODE_400, 1003, e.what());
+			return createErrorResponse(Status::CODE_401, 4001, e.what());
 		} catch (const std::exception& e) {
 			// 捕获其他未知异常
 			return createErrorResponse(Status::CODE_500, 5000, "系统内部错误");

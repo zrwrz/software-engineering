@@ -1,36 +1,81 @@
-## 1. 数据库修改
+# 统合修复说明
 
-补充了 `sql/schema.sql`，新增/调整了以下表：
+## 功能修复
 
-### 1.1 调整的表
+### 物品模块
 
-- `users`
-  - 保留原角色枚举：`borrower`、`resource_admin`、`system_admin`
-  - 保留原账号状态：`active`、`banned`、`frozen`
-- `items`
-  - 补充 `total_count`
-  - 补充 `available_count`
-  - 补充 `deposit`
-  - 将状态调整为接口文档中的 `ON_SHELF` / `OFF_SHELF`
-- `orders`
-  - 补充了 `quantity`
-  - 将预约时间字段调整为了 `reserve_start_time` / `reserve_end_time`
-  - 补充了 `pickup_time` / `return_time`
-  - 将订单状态调整为接口文档中的 `CREATED`、`APPROVED`、`REJECTED`、`BORROWED`、`RETURNED`、`CANCELLED`、`OVERDUE`
-  - 补充了审核、借出、归还相关操作人字段
+- 保留现有接口：
+  - `GET /api/v1/items`
+  - `GET /api/v1/items/{itemId}`
+  - `POST /api/v1/items/submissions`
+  - `GET /api/v1/admin/items/submissions`
+  - `PATCH /api/v1/admin/items/submissions/{submissionId}/audit`
+  - `PUT /api/v1/items/{itemId}`
+  - `PATCH /api/v1/items/{itemId}/status`
+- 物品上传申请审核通过后创建正式物品，拒绝后仅更新申请状态。
 
-### 1.2 新增的表
+### 预约借还模块
 
-- `item_submissions`
-- `borrow_records`
-- `credit_records`
-- `compensation_records`
-- `notifications`
-- `audit_logs`
+- 创建预约时校验物品状态、库存、用户状态和信用分。
+- 审核通过时预留库存，审核拒绝时不占用库存。
+- 办理借出时更新订单状态为 `BORROWED`，写入借出记录和站内通知。
+- 办理归还时释放库存，写入归还记录，按时归还生成信用加分记录。
+- 归还时如 `needCompensation=true`，自动生成赔偿记录和信用扣分记录。
+- 逾期任务会将超期未还订单更新为 `OVERDUE`，并写入逾期通知和信用扣分记录。
 
-对应物品上传申请、借还记录、信用记录、赔偿记录、通知记录和操作日志等持久化数据。
+### 辅助模块
 
-## 2. CMake 修改
+- 赔偿记录创建时同步写入信用扣分和通知。
+- 信用记录查询保持借用用户只能看自己、管理员可按用户筛选。
+- 统计看板继续基于订单、用户信用和热门物品聚合计算。
 
-- 增加了 `OpenSSL` 链接，用于 JWT HMAC。
-- 增加 `mysqlcppconn` 检测。
+## 数据库与环境变量
+
+数据库连接支持以下环境变量：
+
+```bash
+export JIEWU_DB_HOST="tcp://127.0.0.1:3306"
+export JIEWU_DB_USER="root"
+export JIEWU_DB_PASSWORD="password"
+export JIEWU_DB_NAME="jiewu_project"
+```
+
+同时兼容旧变量：`DB_HOST`、`DB_USER`、`DB_PASSWORD`、`DB_NAME`。
+
+## 编译运行
+
+```bash
+mkdir -p build
+cd build
+cmake ..
+make -j
+./jiewu_server
+```
+
+依赖：Oat++、OpenSSL、MySQL Connector/C++。
+
+## 测试
+
+用户基础接口测试：
+
+```bash
+python test/UserTest.py
+```
+
+完整接口流程测试：
+
+```bash
+python test/test_api_full.py
+```
+
+完整流程测试支持以下环境变量：
+
+```bash
+export API_BASE_URL="http://localhost:8081/api/v1"
+export RESOURCE_ADMIN_USERNAME="resource_admin"
+export RESOURCE_ADMIN_PASSWORD="password"
+export SYSTEM_ADMIN_USERNAME="system_admin"
+export SYSTEM_ADMIN_PASSWORD="password"
+```
+
+如果没有配置管理员账号，测试脚本会跳过管理端和系统管理员专属接口，只运行普通用户可访问的测试。

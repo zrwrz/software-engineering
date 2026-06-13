@@ -94,13 +94,15 @@ oatpp::Object<StatusResultDto> OrderManageRepository::auditOrder(int64_t operato
     conn->setAutoCommit(false);
     try {
         std::unique_ptr<sql::PreparedStatement> stmt(conn->prepareStatement(
-            "SELECT o.status, o.quantity, o.item_id, i.available_count, i.status item_status FROM orders o JOIN items i ON o.item_id = i.id WHERE o.id = ? FOR UPDATE"
+            "SELECT o.status, o.quantity, o.item_id, o.user_id, i.available_count, i.status item_status "
+            "FROM orders o JOIN items i ON o.item_id = i.id WHERE o.id = ? FOR UPDATE"
         ));
         stmt->setInt64(1, orderId);
         std::unique_ptr<sql::ResultSet> rs(stmt->executeQuery());
         if (!rs->next()) throw std::runtime_error("订单不存在");
         if (rs->getString("status") != "CREATED") throw std::runtime_error("订单状态不允许当前操作");
 
+        int64_t userId = rs->getInt64("user_id");
         std::string newStatus;
         if (action == "APPROVE") {
             if (rs->getString("item_status") != "ON_SHELF" || rs->getInt("available_count") < rs->getInt("quantity")) {
@@ -127,8 +129,18 @@ oatpp::Object<StatusResultDto> OrderManageRepository::auditOrder(int64_t operato
         updateOrder->setInt64(3, operatorId);
         updateOrder->setInt64(4, orderId);
         updateOrder->executeUpdate();
-        conn->commit();
 
+        std::unique_ptr<sql::PreparedStatement> noticeStmt(conn->prepareStatement(
+            "INSERT INTO notifications(user_id, type, title, content, related_order_id) VALUES(?, 'ORDER_AUDIT', '预约审核结果', ?, ?)"
+        ));
+        std::string noticeContent = newStatus == "APPROVED" ? "您的预约已审核通过，请按时取用。" : "您的预约未通过审核。";
+        if (newStatus == "REJECTED" && !remark.empty()) noticeContent += "原因：" + remark;
+        noticeStmt->setInt64(1, userId);
+        noticeStmt->setString(2, noticeContent);
+        noticeStmt->setInt64(3, orderId);
+        noticeStmt->executeUpdate();
+
+        conn->commit();
         auto result = StatusResultDto::createShared();
         result->id = orderId;
         result->status = newStatus.c_str();
@@ -142,25 +154,57 @@ oatpp::Object<StatusResultDto> OrderManageRepository::auditOrder(int64_t operato
 
 oatpp::Object<StatusResultDto> OrderManageRepository::borrowOrder(int64_t operatorId, int64_t orderId) {
     auto conn = Database::getConnection();
-    std::unique_ptr<sql::PreparedStatement> stmt(conn->prepareStatement(
-        "UPDATE orders SET status = 'BORROWED', pickup_time = NOW(), borrowed_by = ? WHERE id = ? AND status = 'APPROVED'"
-    ));
-    stmt->setInt64(1, operatorId);
-    stmt->setInt64(2, orderId);
-    int affected = stmt->executeUpdate();
-    if (affected == 0) throw std::runtime_error("订单不存在或状态不允许办理借出");
+    conn->setAutoCommit(false);
+    try {
+        std::unique_ptr<sql::PreparedStatement> selectStmt(conn->prepareStatement(
+            "SELECT user_id, item_id, quantity, status FROM orders WHERE id = ? FOR UPDATE"
+        ));
+        selectStmt->setInt64(1, orderId);
+        std::unique_ptr<sql::ResultSet> orderRs(selectStmt->executeQuery());
+        if (!orderRs->next()) throw std::runtime_error("订单不存在");
+        if (orderRs->getString("status") != "APPROVED") throw std::runtime_error("订单状态不允许办理借出");
+        int64_t userId = orderRs->getInt64("user_id");
+        int64_t itemId = orderRs->getInt64("item_id");
 
-    std::unique_ptr<sql::PreparedStatement> query(conn->prepareStatement(
-        "SELECT DATE_FORMAT(pickup_time, '%Y-%m-%d %H:%i:%s') pickup_time FROM orders WHERE id = ?"
-    ));
-    query->setInt64(1, orderId);
-    std::unique_ptr<sql::ResultSet> rs(query->executeQuery());
+        std::unique_ptr<sql::PreparedStatement> updateStmt(conn->prepareStatement(
+            "UPDATE orders SET status = 'BORROWED', pickup_time = NOW(), borrowed_by = ? WHERE id = ?"
+        ));
+        updateStmt->setInt64(1, operatorId);
+        updateStmt->setInt64(2, orderId);
+        updateStmt->executeUpdate();
 
-    auto result = StatusResultDto::createShared();
-    result->id = orderId;
-    result->status = "BORROWED";
-    if (rs->next()) result->pickupTime = rs->getString("pickup_time").c_str();
-    return result;
+        std::unique_ptr<sql::PreparedStatement> recordStmt(conn->prepareStatement(
+            "INSERT INTO borrow_records(order_id, item_id, user_id, operator_id, action, remark) VALUES(?, ?, ?, ?, 'BORROW', '确认借出')"
+        ));
+        recordStmt->setInt64(1, orderId);
+        recordStmt->setInt64(2, itemId);
+        recordStmt->setInt64(3, userId);
+        recordStmt->setInt64(4, operatorId);
+        recordStmt->executeUpdate();
+
+        std::unique_ptr<sql::PreparedStatement> noticeStmt(conn->prepareStatement(
+            "INSERT INTO notifications(user_id, type, title, content, related_order_id) VALUES(?, 'BORROW', '物品已借出', '您的预约物品已确认借出。', ?)"
+        ));
+        noticeStmt->setInt64(1, userId);
+        noticeStmt->setInt64(2, orderId);
+        noticeStmt->executeUpdate();
+
+        std::unique_ptr<sql::PreparedStatement> query(conn->prepareStatement(
+            "SELECT DATE_FORMAT(pickup_time, '%Y-%m-%d %H:%i:%s') pickup_time FROM orders WHERE id = ?"
+        ));
+        query->setInt64(1, orderId);
+        std::unique_ptr<sql::ResultSet> rs(query->executeQuery());
+        conn->commit();
+
+        auto result = StatusResultDto::createShared();
+        result->id = orderId;
+        result->status = "BORROWED";
+        if (rs->next()) result->pickupTime = rs->getString("pickup_time").c_str();
+        return result;
+    } catch (...) {
+        conn->rollback();
+        throw;
+    }
 }
 
 oatpp::Object<StatusResultDto> OrderManageRepository::returnOrder(int64_t operatorId, int64_t orderId, const oatpp::Object<ReturnOrderRequest>& request) {
@@ -168,7 +212,7 @@ oatpp::Object<StatusResultDto> OrderManageRepository::returnOrder(int64_t operat
     conn->setAutoCommit(false);
     try {
         std::unique_ptr<sql::PreparedStatement> selectStmt(conn->prepareStatement(
-            "SELECT status, quantity, item_id, user_id FROM orders WHERE id = ? FOR UPDATE"
+            "SELECT o.status, o.quantity, o.item_id, o.user_id, i.deposit FROM orders o JOIN items i ON o.item_id = i.id WHERE o.id = ? FOR UPDATE"
         ));
         selectStmt->setInt64(1, orderId);
         std::unique_ptr<sql::ResultSet> rs(selectStmt->executeQuery());
@@ -178,11 +222,14 @@ oatpp::Object<StatusResultDto> OrderManageRepository::returnOrder(int64_t operat
         int quantity = rs->getInt("quantity");
         int64_t itemId = rs->getInt64("item_id");
         int64_t userId = rs->getInt64("user_id");
+        double deposit = rs->getDouble("deposit");
+        std::string returnRemark = request && request->returnRemark ? request->returnRemark->c_str() : "";
+        bool needCompensation = request && request->needCompensation ? request->needCompensation.getValue(false) : false;
 
         std::unique_ptr<sql::PreparedStatement> updateOrder(conn->prepareStatement(
             "UPDATE orders SET status = 'RETURNED', return_time = NOW(), return_remark = ?, returned_by = ? WHERE id = ?"
         ));
-        updateOrder->setString(1, request && request->returnRemark ? request->returnRemark->c_str() : "");
+        updateOrder->setString(1, returnRemark);
         updateOrder->setInt64(2, operatorId);
         updateOrder->setInt64(3, orderId);
         updateOrder->executeUpdate();
@@ -201,22 +248,55 @@ oatpp::Object<StatusResultDto> OrderManageRepository::returnOrder(int64_t operat
         recordStmt->setInt64(2, itemId);
         recordStmt->setInt64(3, userId);
         recordStmt->setInt64(4, operatorId);
-        recordStmt->setString(5, request && request->returnRemark ? request->returnRemark->c_str() : "");
+        recordStmt->setString(5, returnRemark);
         recordStmt->executeUpdate();
 
-        if (oldStatus == "OVERDUE") {
+        if (oldStatus == "BORROWED" && !needCompensation) {
             std::unique_ptr<sql::PreparedStatement> creditStmt(conn->prepareStatement(
-                "INSERT INTO credit_records(user_id, order_id, change_value, reason) VALUES(?, ?, -5, '逾期归还')"
+                "INSERT INTO credit_records(user_id, order_id, change_value, reason) VALUES(?, ?, 1, '按时归还')"
             ));
             creditStmt->setInt64(1, userId);
             creditStmt->setInt64(2, orderId);
             creditStmt->executeUpdate();
             std::unique_ptr<sql::PreparedStatement> userStmt(conn->prepareStatement(
-                "UPDATE users SET credit_score = credit_score - 5 WHERE id = ?"
+                "UPDATE users SET credit_score = credit_score + 1 WHERE id = ?"
             ));
             userStmt->setInt64(1, userId);
             userStmt->executeUpdate();
         }
+
+        if (needCompensation) {
+            std::unique_ptr<sql::PreparedStatement> compensationStmt(conn->prepareStatement(
+                "INSERT INTO compensation_records(order_id, user_id, amount, reason, status) VALUES(?, ?, ?, ?, 'PENDING')"
+            ));
+            compensationStmt->setInt64(1, orderId);
+            compensationStmt->setInt64(2, userId);
+            compensationStmt->setDouble(3, deposit);
+            compensationStmt->setString(4, returnRemark.empty() ? "归还核验需赔偿" : returnRemark);
+            compensationStmt->executeUpdate();
+
+            std::unique_ptr<sql::PreparedStatement> creditStmt(conn->prepareStatement(
+                "INSERT INTO credit_records(user_id, order_id, change_value, reason) VALUES(?, ?, -10, '损坏赔偿')"
+            ));
+            creditStmt->setInt64(1, userId);
+            creditStmt->setInt64(2, orderId);
+            creditStmt->executeUpdate();
+            std::unique_ptr<sql::PreparedStatement> userStmt(conn->prepareStatement(
+                "UPDATE users SET credit_score = credit_score - 10 WHERE id = ?"
+            ));
+            userStmt->setInt64(1, userId);
+            userStmt->executeUpdate();
+        }
+
+        std::unique_ptr<sql::PreparedStatement> noticeStmt(conn->prepareStatement(
+            "INSERT INTO notifications(user_id, type, title, content, related_order_id) VALUES(?, ?, ?, ?, ?)"
+        ));
+        noticeStmt->setInt64(1, userId);
+        noticeStmt->setString(2, needCompensation ? "COMPENSATION" : "RETURN");
+        noticeStmt->setString(3, needCompensation ? "归还待赔偿处理" : "归还已确认");
+        noticeStmt->setString(4, needCompensation ? "您的归还已确认，但存在赔偿事项待处理。" : "您的物品归还已确认。");
+        noticeStmt->setInt64(5, orderId);
+        noticeStmt->executeUpdate();
 
         std::unique_ptr<sql::PreparedStatement> timeStmt(conn->prepareStatement(
             "SELECT DATE_FORMAT(return_time, '%Y-%m-%d %H:%i:%s') return_time FROM orders WHERE id = ?"
@@ -229,7 +309,7 @@ oatpp::Object<StatusResultDto> OrderManageRepository::returnOrder(int64_t operat
         result->id = orderId;
         result->status = "RETURNED";
         if (timeRs->next()) result->returnTime = timeRs->getString("return_time").c_str();
-        result->needCompensation = request && request->needCompensation ? request->needCompensation.getValue(false) : false;
+        result->needCompensation = needCompensation;
         return result;
     } catch (...) {
         conn->rollback();
@@ -251,6 +331,20 @@ oatpp::Object<MarkOverdueResultDto> OrderManageRepository::markOverdue() {
             int64_t orderId = rs->getInt64("id");
             int64_t userId = rs->getInt64("user_id");
             result->orderIds->push_back(orderId);
+
+            std::unique_ptr<sql::PreparedStatement> creditStmt(conn->prepareStatement(
+                "INSERT INTO credit_records(user_id, order_id, change_value, reason) VALUES(?, ?, -5, '订单逾期')"
+            ));
+            creditStmt->setInt64(1, userId);
+            creditStmt->setInt64(2, orderId);
+            creditStmt->executeUpdate();
+
+            std::unique_ptr<sql::PreparedStatement> userStmt(conn->prepareStatement(
+                "UPDATE users SET credit_score = credit_score - 5 WHERE id = ?"
+            ));
+            userStmt->setInt64(1, userId);
+            userStmt->executeUpdate();
+
             std::unique_ptr<sql::PreparedStatement> noticeStmt(conn->prepareStatement(
                 "INSERT INTO notifications(user_id, type, title, content, related_order_id) VALUES(?, 'OVERDUE', '逾期提醒', '您的借用订单已逾期，请尽快归还。', ?)"
             ));

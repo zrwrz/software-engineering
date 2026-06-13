@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/jiewu_server.dir/src/main.cpp.o -o jiewu_server  /usr/local/lib/oatpp-1.4.0/liboatpp.a -latomic 

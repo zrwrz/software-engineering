@@ -1,6 +1,7 @@
 #ifndef JWT_HPP
 #define JWT_HPP
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <sstream>

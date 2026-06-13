@@ -63,36 +63,63 @@ oatpp::Object<CompensationRecordListResponse> CompensationRepository::listRecord
 
 oatpp::Object<CompensationRecordDto> CompensationRepository::createRecord(const oatpp::Object<CompensationCreateRequest>& request) {
     auto conn = Database::getConnection();
-    std::unique_ptr<sql::PreparedStatement> stmt(conn->prepareStatement(
-        "INSERT INTO compensation_records(order_id, user_id, amount, reason, status) VALUES(?, ?, ?, ?, 'PENDING')"
-    ));
-    stmt->setInt64(1, request->orderId.getValue(0));
-    stmt->setInt64(2, request->userId.getValue(0));
-    stmt->setDouble(3, request->amount.getValue(0.0));
-    stmt->setString(4, request->reason ? request->reason->c_str() : "");
-    stmt->executeUpdate();
+    conn->setAutoCommit(false);
+    try {
+        std::unique_ptr<sql::PreparedStatement> stmt(conn->prepareStatement(
+            "INSERT INTO compensation_records(order_id, user_id, amount, reason, status) VALUES(?, ?, ?, ?, 'PENDING')"
+        ));
+        stmt->setInt64(1, request->orderId.getValue(0));
+        stmt->setInt64(2, request->userId.getValue(0));
+        stmt->setDouble(3, request->amount.getValue(0.0));
+        stmt->setString(4, request->reason ? request->reason->c_str() : "");
+        stmt->executeUpdate();
 
-    std::unique_ptr<sql::Statement> idStmt(conn->createStatement());
-    std::unique_ptr<sql::ResultSet> idRs(idStmt->executeQuery("SELECT LAST_INSERT_ID() id"));
-    int64_t id = 0;
-    if (idRs->next()) id = idRs->getInt64("id");
+        std::unique_ptr<sql::Statement> idStmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> idRs(idStmt->executeQuery("SELECT LAST_INSERT_ID() id"));
+        int64_t id = 0;
+        if (idRs->next()) id = idRs->getInt64("id");
 
-    std::unique_ptr<sql::PreparedStatement> query(conn->prepareStatement(
-        "SELECT id, order_id, user_id, amount, reason, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') created_at FROM compensation_records WHERE id = ?"
-    ));
-    query->setInt64(1, id);
-    std::unique_ptr<sql::ResultSet> rs(query->executeQuery());
-    if (!rs->next()) throw std::runtime_error("赔偿记录创建失败");
+        std::unique_ptr<sql::PreparedStatement> creditStmt(conn->prepareStatement(
+            "INSERT INTO credit_records(user_id, order_id, change_value, reason) VALUES(?, ?, -10, '损坏赔偿')"
+        ));
+        creditStmt->setInt64(1, request->userId.getValue(0));
+        creditStmt->setInt64(2, request->orderId.getValue(0));
+        creditStmt->executeUpdate();
 
-    auto record = CompensationRecordDto::createShared();
-    record->id = rs->getInt64("id");
-    record->orderId = rs->getInt64("order_id");
-    record->userId = rs->getInt64("user_id");
-    record->amount = rs->getDouble("amount");
-    record->reason = rs->getString("reason").c_str();
-    record->status = rs->getString("status").c_str();
-    record->createdAt = rs->getString("created_at").c_str();
-    return record;
+        std::unique_ptr<sql::PreparedStatement> userStmt(conn->prepareStatement(
+            "UPDATE users SET credit_score = credit_score - 10 WHERE id = ?"
+        ));
+        userStmt->setInt64(1, request->userId.getValue(0));
+        userStmt->executeUpdate();
+
+        std::unique_ptr<sql::PreparedStatement> noticeStmt(conn->prepareStatement(
+            "INSERT INTO notifications(user_id, type, title, content, related_order_id) VALUES(?, 'COMPENSATION', '赔偿处理通知', '您有新的赔偿记录待处理。', ?)"
+        ));
+        noticeStmt->setInt64(1, request->userId.getValue(0));
+        noticeStmt->setInt64(2, request->orderId.getValue(0));
+        noticeStmt->executeUpdate();
+
+        std::unique_ptr<sql::PreparedStatement> query(conn->prepareStatement(
+            "SELECT id, order_id, user_id, amount, reason, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') created_at FROM compensation_records WHERE id = ?"
+        ));
+        query->setInt64(1, id);
+        std::unique_ptr<sql::ResultSet> rs(query->executeQuery());
+        if (!rs->next()) throw std::runtime_error("赔偿记录创建失败");
+
+        conn->commit();
+        auto record = CompensationRecordDto::createShared();
+        record->id = rs->getInt64("id");
+        record->orderId = rs->getInt64("order_id");
+        record->userId = rs->getInt64("user_id");
+        record->amount = rs->getDouble("amount");
+        record->reason = rs->getString("reason").c_str();
+        record->status = rs->getString("status").c_str();
+        record->createdAt = rs->getString("created_at").c_str();
+        return record;
+    } catch (...) {
+        conn->rollback();
+        throw;
+    }
 }
 
 oatpp::Object<StatusResultDto> CompensationRepository::updateStatus(int64_t id, const std::string& status) {
