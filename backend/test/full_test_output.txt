@@ -1,0 +1,428 @@
+注：以下为在王洵设备上运行完整接口测试的输出结果，仅供参考!!!
+
+[1/4] 普通用户基础接口                                                                                                                                                  
+                                                                                                                                                                        
+[2/4] 资源管理员：物品、申请、订单主流程                                                                                                                                
+                                                                                                                                                                        
+[3/4] 赔偿、信用、统计、审计辅助功能                                                                                                                                    
+                                                                                                                                                                        
+[4/4] 系统管理员：用户管理                                                                                                                                              
+                                                                                                                                                                        
+SQL 预置数据下，用户端、管理端与辅助功能接口测试通过。
+
+E:\A.SE\Project\software-engineering>python test/ApiFullTest.py            
+
+================================================================================
+测试配置
+================================================================================
+BASE_URL                  = http://localhost:8081/api/v1
+BORROWER_USERNAME         = test_borrower_01
+RESOURCE_ADMIN_USERNAME   = resource_admin_01
+SYSTEM_ADMIN_USERNAME     = system_admin_01
+TEST_VERBOSE              = 1
+TEST_PRINT_RESPONSE_DATA  = 0
+
+运行前请确认：
+1. 后端服务已启动。
+2. 已执行 prepare_management_test_data_v2.sql。
+3. SQL 中 USE 的数据库名与后端 JIEWU_DB_NAME/DB_NAME 一致。
+
+================================================================================
+账号登录与角色校验
+================================================================================
+
+--- 登录账号：test_borrower_01
+  -> [login] POST /auth/login
+     json   = {"username":"test_borrower_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=10, username=test_borrower_01, role=borrower
+
+--- 登录账号：resource_admin_01
+  -> [login] POST /auth/login
+     json   = {"username":"resource_admin_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=4, username=resource_admin_01, role=resource_admin
+
+--- 登录账号：system_admin_01
+  -> [login] POST /auth/login
+     json   = {"username":"system_admin_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=5, username=system_admin_01, role=system_admin
+  [INFO] 普通用户：{'id': 10, 'username': 'test_borrower_01', 'role': 'borrower', 'creditScore': 87}
+  [INFO] 资源管理员：{'id': 4, 'username': 'resource_admin_01', 'role': 'resource_admin', 'creditScore': 100}
+  [INFO] 系统管理员：{'id': 5, 'username': 'system_admin_01', 'role': 'system_admin', 'creditScore': 100}
+
+================================================================================
+[1/4] 普通用户基础接口
+================================================================================
+
+--- 获取当前登录用户信息
+  -> [test_borrower_01] GET /users/me
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'username', 'role', 'phone', 'email', 'creditScore', 'status', 'createdAt']
+  [OK] 普通用户个人信息接口通过
+
+--- 普通用户查看物品列表
+  -> [test_borrower_01] GET /items
+     params = {"page":1,"size":5,"keyword":"","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[5], other_keys=['total', 'page', 'size']
+  [OK] 普通用户物品列表接口通过
+
+--- 普通用户查看个人信用记录
+  -> [test_borrower_01] GET /credits/records
+     params = {"userId":0,"page":1,"size":5}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[5], other_keys=['page', 'size', 'total']
+  [OK] 普通用户信用记录接口通过
+
+================================================================================
+[2/4] 资源管理员：物品、申请、订单主流程
+================================================================================
+
+--- 检查 SQL 预置物品是否可见
+  -> [resource_admin_01] GET /items
+     params = {"page":1,"size":50,"keyword":"SEED_ITEM","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[3], other_keys=['total', 'page', 'size']
+  [INFO] SEED_ITEM 物品列表返回 3 条记录
+  [OK] SQL 预置物品数据可见，数据库连接和基础数据基本正常
+
+--- 测试物品详情、编辑与上下架
+
+--- 查找物品：SEED_ITEM_EDIT_STATUS
+  -> [resource_admin_01] GET /items
+     params = {"page":1,"size":50,"keyword":"SEED_ITEM_EDIT_STATUS","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['total', 'page', 'size']
+  [INFO] 物品列表返回 1 条记录
+  [OK] 找到物品：id=9, name=SEED_ITEM_EDIT_STATUS, status=ON_SHELF
+  -> [resource_admin_01] GET /items/9
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'name', 'category', 'description', 'totalCount', 'availableCount', 'status', 'deposit', 'createdBy', 'createdAt']
+  [OK] 物品详情接口通过：itemId=9
+  -> [resource_admin_01] PUT /items/9
+     json   = {"description":"SEED updated by api","totalCount":6,"deposit":16.0}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'name', 'category', 'description', 'totalCount', 'availableCount', 'status', 'deposit', 'createdBy', 'createdAt']
+  [OK] 物品编辑接口通过
+  -> [resource_admin_01] PATCH /items/9/status
+     json   = {"status":"OFF_SHELF"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status']
+  [OK] 物品下架接口通过
+  -> [resource_admin_01] PATCH /items/9/status
+     json   = {"status":"ON_SHELF"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status']
+  [OK] 物品上架接口通过
+
+--- 测试物品申请审核通过后生成正式物品
+
+--- 查找物品申请：SEED_SUBMISSION_PENDING, status=PENDING
+  -> [resource_admin_01] GET /admin/items/submissions
+     params = {"page":1,"size":50,"status":"PENDING"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['page', 'size', 'total']
+  [INFO] 申请列表返回 1 条记录
+Traceback (most recent call last):
+  File "E:\A.SE\Project\software-engineering\test\ApiFullTest.py", line 462, in <module>
+    main()
+  File "E:\A.SE\Project\software-engineering\test\ApiFullTest.py", line 452, in main
+    returned_order_id = run_resource_manager_tests(manager)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\A.SE\Project\software-engineering\test\ApiFullTest.py", line 350, in run_resource_manager_tests
+    pending = find_submission_by_name(manager, "SEED_SUBMISSION_PENDING", "PENDING")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\A.SE\Project\software-engineering\test\ApiFullTest.py", line 286, in find_submission_by_name
+    raise AssertionError(f"未找到物品申请：{name} status={status}\n响应：{json.dumps(data, ensure_ascii=False, indent=2)}")
+AssertionError: 未找到物品申请：SEED_SUBMISSION_PENDING status=PENDING
+响应：{
+  "list": [
+    {
+      "id": 4,
+      "submitterId": 10,
+      "name": "管理端测试申请_待审核",
+      "category": "测试分类",
+      "description": "用于物品上传申请审核通过测试",
+      "totalCount": 3,
+      "deposit": 12,
+      "auditRemark": null,
+      "status": "PENDING",
+      "createdAt": "2026-06-14 03:29:50"
+    }
+  ],
+  "page": 1,
+  "size": 50,
+  "total": 1
+}
+
+E:\A.SE\Project\software-engineering>python test/ApiFullTest.py
+
+================================================================================
+测试配置
+================================================================================
+BASE_URL                  = http://localhost:8081/api/v1
+BORROWER_USERNAME         = test_borrower_01
+RESOURCE_ADMIN_USERNAME   = resource_admin_01
+SYSTEM_ADMIN_USERNAME     = system_admin_01
+TEST_VERBOSE              = 1
+TEST_PRINT_RESPONSE_DATA  = 0
+
+运行前请确认：
+1. 后端服务已启动。
+2. 已执行 prepare_management_test_data_v2.sql。
+3. SQL 中 USE 的数据库名与后端 JIEWU_DB_NAME/DB_NAME 一致。
+
+================================================================================
+账号登录与角色校验
+================================================================================
+
+--- 登录账号：test_borrower_01
+  -> [login] POST /auth/login
+     json   = {"username":"test_borrower_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=10, username=test_borrower_01, role=borrower
+
+--- 登录账号：resource_admin_01
+  -> [login] POST /auth/login
+     json   = {"username":"resource_admin_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=4, username=resource_admin_01, role=resource_admin
+
+--- 登录账号：system_admin_01
+  -> [login] POST /auth/login
+     json   = {"username":"system_admin_01","password":"***"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['token', 'tokenType', 'expiresIn', 'userInfo']
+  [OK] 登录成功：userId=5, username=system_admin_01, role=system_admin
+  [INFO] 普通用户：{'id': 10, 'username': 'test_borrower_01', 'role': 'borrower', 'creditScore': 100}
+  [INFO] 资源管理员：{'id': 4, 'username': 'resource_admin_01', 'role': 'resource_admin', 'creditScore': 100}
+  [INFO] 系统管理员：{'id': 5, 'username': 'system_admin_01', 'role': 'system_admin', 'creditScore': 100}
+
+================================================================================
+[1/4] 普通用户基础接口
+================================================================================
+
+--- 获取当前登录用户信息
+  -> [test_borrower_01] GET /users/me
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'username', 'role', 'phone', 'email', 'creditScore', 'status', 'createdAt']
+  [OK] 普通用户个人信息接口通过
+
+--- 普通用户查看物品列表
+  -> [test_borrower_01] GET /items
+     params = {"page":1,"size":5,"keyword":"","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[5], other_keys=['total', 'page', 'size']
+  [OK] 普通用户物品列表接口通过
+
+--- 普通用户查看个人信用记录
+  -> [test_borrower_01] GET /credits/records
+     params = {"userId":0,"page":1,"size":5}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[2], other_keys=['page', 'size', 'total']
+  [OK] 普通用户信用记录接口通过
+
+================================================================================
+[2/4] 资源管理员：物品、申请、订单主流程
+================================================================================
+
+--- 检查 SQL 预置物品是否可见
+  -> [resource_admin_01] GET /items
+     params = {"page":1,"size":50,"keyword":"SEED_ITEM","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[3], other_keys=['total', 'page', 'size']
+  [INFO] SEED_ITEM 物品列表返回 3 条记录
+  [OK] SQL 预置物品数据可见，数据库连接和基础数据基本正常
+
+--- 测试物品详情、编辑与上下架
+
+--- 查找物品：SEED_ITEM_EDIT_STATUS
+  -> [resource_admin_01] GET /items
+     params = {"page":1,"size":50,"keyword":"SEED_ITEM_EDIT_STATUS","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['total', 'page', 'size']
+  [INFO] 物品列表返回 1 条记录
+  [OK] 找到物品：id=13, name=SEED_ITEM_EDIT_STATUS, status=ON_SHELF
+  -> [resource_admin_01] GET /items/13
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'name', 'category', 'description', 'totalCount', 'availableCount', 'status', 'deposit', 'createdBy', 'createdAt']
+  [OK] 物品详情接口通过：itemId=13
+  -> [resource_admin_01] PUT /items/13
+     json   = {"description":"SEED updated by api","totalCount":6,"deposit":16.0}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'name', 'category', 'description', 'totalCount', 'availableCount', 'status', 'deposit', 'createdBy', 'createdAt']
+  [OK] 物品编辑接口通过
+  -> [resource_admin_01] PATCH /items/13/status
+     json   = {"status":"OFF_SHELF"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status']
+  [OK] 物品下架接口通过
+  -> [resource_admin_01] PATCH /items/13/status
+     json   = {"status":"ON_SHELF"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status']
+  [OK] 物品上架接口通过
+
+--- 测试物品申请审核通过后生成正式物品
+
+--- 查找物品申请：SEED_SUBMISSION_PENDING, status=PENDING
+  -> [resource_admin_01] GET /admin/items/submissions
+     params = {"page":1,"size":50,"status":"PENDING"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[2], other_keys=['page', 'size', 'total']
+  [INFO] 申请列表返回 2 条记录
+  [OK] 找到物品申请：id=11, name=SEED_SUBMISSION_PENDING, status=PENDING
+  -> [resource_admin_01] PATCH /admin/items/submissions/11/audit
+     json   = {"action":"APPROVE","remark":"SEED approved by api"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['submissionId', 'status', 'itemId']
+  [OK] 物品申请审核接口通过：submissionId=11
+
+--- 查找物品：SEED_SUBMISSION_PENDING
+  -> [resource_admin_01] GET /items
+     params = {"page":1,"size":50,"keyword":"SEED_SUBMISSION_PENDING","category":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['total', 'page', 'size']
+  [INFO] 物品列表返回 1 条记录
+  [OK] 找到物品：id=15, name=SEED_SUBMISSION_PENDING, status=ON_SHELF
+  [OK] 审核通过后正式物品可查询：itemId=15
+
+--- 测试订单审核、借出、归还、逾期任务
+
+--- 查找订单：orderNo=SEED_CREATED_AUDIT, status=CREATED
+  -> [resource_admin_01] GET /orders
+     params = {"page":1,"size":50,"status":"CREATED"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['page', 'size', 'total']
+  [INFO] 订单列表返回 1 条记录
+  [OK] 找到订单：id=15, orderNo=SEED_CREATED_AUDIT, status=CREATED
+
+--- 查找订单：orderNo=SEED_APPROVED_BORROW, status=APPROVED
+  -> [resource_admin_01] GET /orders
+     params = {"page":1,"size":50,"status":"APPROVED"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['page', 'size', 'total']
+  [INFO] 订单列表返回 1 条记录
+  [OK] 找到订单：id=16, orderNo=SEED_APPROVED_BORROW, status=APPROVED
+
+--- 查找订单：orderNo=SEED_BORROWED_RETURN, status=BORROWED
+  -> [resource_admin_01] GET /orders
+     params = {"page":1,"size":50,"status":"BORROWED"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[2], other_keys=['page', 'size', 'total']
+  [INFO] 订单列表返回 2 条记录
+  [OK] 找到订单：id=17, orderNo=SEED_BORROWED_RETURN, status=BORROWED
+  -> [resource_admin_01] GET /orders/15
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'orderNo', 'userId', 'itemId', 'quantity', 'reserveStartTime', 'reserveEndTime', 'pickupTime', 'returnTime', 'status', 'remark', 'createdAt']
+  [OK] 订单详情接口通过
+  -> [resource_admin_01] PATCH /orders/15/audit
+     json   = {"action":"APPROVE","reason":"SEED approved by api"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'remark']
+  [OK] 订单审核通过接口通过
+  -> [resource_admin_01] PATCH /orders/16/borrow
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'pickupTime']
+  [OK] 办理借出接口通过
+  -> [resource_admin_01] PATCH /orders/17/return
+     json   = {"returnRemark":"SEED returned by api","needCompensation":false}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'returnTime', 'needCompensation']
+  [OK] 办理归还接口通过
+  -> [internal] POST /internal/orders/mark-overdue
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['updatedCount', 'orderIds']
+  [OK] 逾期标记任务接口通过
+
+================================================================================
+[3/4] 赔偿、信用、统计、审计辅助功能
+================================================================================
+
+--- 测试赔偿记录列表、创建和状态更新
+  -> [resource_admin_01] GET /compensations
+     params = {"page":1,"size":20,"status":"","userId":0,"orderId":0}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[3], other_keys=['page', 'size', 'total']
+  [OK] 赔偿记录列表接口通过
+  -> [resource_admin_01] POST /compensations
+     json   = {"orderId":17,"userId":10,"amount":1.0,"reason":"SEED compensation created by api"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'orderId', 'userId', 'amount', 'reason', 'status', 'createdAt']
+  [OK] 赔偿记录创建接口通过：compensationId=11
+  -> [resource_admin_01] GET /compensations
+     params = {"page":1,"size":20,"status":"","userId":0,"orderId":17}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['page', 'size', 'total']
+  [OK] 按订单查询赔偿记录接口通过
+  -> [resource_admin_01] PATCH /compensations/11/status
+     json   = {"status":"WAIVED"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'remark', 'itemId', 'pickupTime', 'returnTime', 'needCompensation']
+  [OK] 赔偿状态更新接口通过
+
+--- 测试统计看板和信用记录
+  -> [resource_admin_01] GET /stats/dashboard
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['todayReservationCount', 'borrowingCount', 'overdueCount', 'topBorrowItems', 'creditDistribution']
+  [OK] 统计看板接口通过
+  -> [resource_admin_01] GET /credits/records
+     params = {"userId":10,"page":1,"size":20}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[5], other_keys=['page', 'size', 'total']
+  [OK] 信用记录列表接口通过
+
+--- 测试系统管理员人工调分和审计日志
+  -> [system_admin_01] POST /credits/adjust
+     json   = {"userId":10,"changeValue":1,"reason":"SEED credit adjusted by system admin"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'userId', 'changeValue', 'reason', 'currentCreditScore', 'createdAt']
+  [OK] 系统管理员人工调分接口通过
+  -> [system_admin_01] GET /admin/audit-logs
+     params = {"page":1,"size":20,"operatorId":0,"startTime":"","endTime":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[20], other_keys=['page', 'size', 'total']
+  [OK] 审计日志查询接口通过
+
+================================================================================
+[4/4] 系统管理员：用户管理
+================================================================================
+
+--- 测试用户列表
+  -> [system_admin_01] GET /admin/users
+     params = {"page":1,"size":20,"keyword":"","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[12], other_keys=['page', 'size', 'total']
+  [OK] 用户列表接口通过
+
+--- 测试冻结和恢复指定用户
+
+--- 查找用户：manage_target_user_01
+  -> [system_admin_01] GET /admin/users
+     params = {"page":1,"size":50,"keyword":"manage_target_user_01","status":""}
+  <- HTTP 200, code=0, message=ok
+     data_summary = list[1], other_keys=['page', 'size', 'total']
+  [INFO] 用户列表返回 1 条记录
+  [OK] 找到用户：id=11, username=manage_target_user_01, role=borrower, status=active
+  -> [system_admin_01] PATCH /admin/users/11/status
+     json   = {"status":"frozen"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'remark', 'itemId', 'pickupTime', 'returnTime', 'needCompensation']
+  [OK] 冻结用户接口通过：userId=11
+  -> [system_admin_01] PATCH /admin/users/11/status
+     json   = {"status":"active"}
+  <- HTTP 200, code=0, message=ok
+     data_summary = dict_keys=['id', 'status', 'remark', 'itemId', 'pickupTime', 'returnTime', 'needCompensation']
+  [OK] 恢复用户接口通过：userId=11
+
+================================================================================
+测试结论
+================================================================================
+SQL 预置数据下，用户端、管理端与辅助功能接口测试通过。
